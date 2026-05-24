@@ -1,0 +1,8 @@
+torch>=2.0
+transformers>=4.30
+peft>=0.10
+datasets
+scikit-learn
+pyyaml
+accelerate
+matplotlib

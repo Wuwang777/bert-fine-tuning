@@ -1,0 +1,29 @@
+# ====================================
+# 全量微调配置文件
+# ====================================
+
+# 模型
+model_name: "hfl/chinese-roberta-wwm-ext"
+num_classes: 2
+dropout: 0.1
+
+# 数据
+dataset_name: "lansinuote/ChnSentiCorp"
+data_dir: "./data/processed"
+max_length: 128
+
+# 训练
+seed: 42
+epochs: 10
+batch_size: 16          # RTX 3060 6GB 单卡
+eval_batch_size: 64
+gradient_accumulation_steps: 2  # 等效 batch_size = 32
+
+# 优化器（差异化学习率）
+bert_lr: 2.0e-5         # BERT 层学习率
+head_lr: 1.0e-4          # 分类头学习率
+weight_decay: 0.01
+
+# 路径
+output_dir: "./results/full"
+save_dir: "./models/full"

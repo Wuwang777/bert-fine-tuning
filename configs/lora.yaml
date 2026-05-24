@@ -1,0 +1,36 @@
+# ====================================
+# LoRA 微调配置文件
+# ====================================
+
+# 模型
+model_name: "hfl/chinese-roberta-wwm-ext"
+num_classes: 2
+dropout: 0.1
+
+# 数据
+dataset_name: "lansinuote/ChnSentiCorp"
+data_dir: "./data/processed"
+max_length: 128
+
+# 训练
+seed: 42
+epochs: 10             # LoRA 参数少，需更多轮次收敛
+batch_size: 16         # 防御性配置：降低单批次大小以防 RTX 3060 6GB 显存溢出
+eval_batch_size: 16    # 同样调小评估批大小以策安全
+gradient_accumulation_steps: 4  # 梯度累积，等效 batch_size = 64
+
+# 优化器（统一学习率）
+lr: 1.0e-4
+weight_decay: 0.01
+
+# LoRA 配置
+lora_r: 8              # 低秩分解维度
+lora_alpha: 16         # 缩放因子（2 × r）
+lora_dropout: 0.05     # LoRA Dropout
+target_modules:
+  - "query"
+  - "value"
+
+# 路径
+output_dir: "./results/lora"
+save_dir: "./models/lora"
