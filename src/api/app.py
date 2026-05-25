@@ -141,7 +141,7 @@ def load_model(method: str) -> bool:
         with predictor_lock:
             predictor = new_predictor
             current_method = method
-        logger.info(f"🎉 {method.upper()} 情感分析模型加载成功！设备: {new_predictor.device}")
+        logger.info(f"[SUCCESS] {method.upper()} 情感分析模型加载成功！设备: {new_predictor.device}")
         return True
     except Exception as e:
         logger.error(f"加载模型 {method} 失败: {str(e)}", exc_info=True)
@@ -169,7 +169,7 @@ def startup_event():
             return
             
     logger.warning(
-        "⚠️ 警告: 未能在 'models/' 目录下找到任何有效的模型！\n"
+        "[WARNING] 未能在 'models/' 目录下找到任何有效的模型！\n"
         "服务将正常启动，但调用预测接口时会返回错误。\n"
         "请先运行 'run_full.py' 或 'run_lora.py' 进行模型训练微调，"
         "或通过 POST /model/switch 接口动态加载已完成训练的模型。"
