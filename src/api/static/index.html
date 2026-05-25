@@ -11,24 +11,24 @@
     
     <style>
         :root {
-            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #020617 100%);
-            --panel-bg: rgba(30, 41, 59, 0.45);
-            --panel-border: rgba(255, 255, 255, 0.08);
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
-            --text-muted: #64748b;
+            --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
+            --panel-bg: rgba(255, 255, 255, 0.45);
+            --panel-border: rgba(255, 255, 255, 0.6);
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
             
-            --primary: #6366f1;
-            --primary-hover: #4f46e5;
-            --primary-glow: rgba(99, 102, 241, 0.3);
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --primary-glow: rgba(79, 70, 229, 0.15);
             
             --positive: #10b981;
-            --positive-bg: rgba(16, 185, 129, 0.15);
-            --positive-glow: rgba(16, 185, 129, 0.4);
+            --positive-bg: rgba(16, 185, 129, 0.12);
+            --positive-glow: rgba(16, 185, 129, 0.2);
             
             --negative: #f43f5e;
-            --negative-bg: rgba(244, 63, 94, 0.15);
-            --negative-glow: rgba(244, 63, 94, 0.4);
+            --negative-bg: rgba(244, 63, 94, 0.12);
+            --negative-glow: rgba(244, 63, 94, 0.2);
             
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             --font-main: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -56,14 +56,14 @@
             border-radius: 50%;
             filter: blur(120px);
             z-index: -1;
-            opacity: 0.4;
+            opacity: 0.55;
             animation: float-blob 20s infinite alternate ease-in-out;
         }
 
         .blob-1 {
             width: 400px;
             height: 400px;
-            background: #4f46e5;
+            background: #c7d2fe; /* Soft pastel indigo */
             top: 10%;
             left: 10%;
         }
@@ -71,7 +71,7 @@
         .blob-2 {
             width: 500px;
             height: 500px;
-            background: #db2777;
+            background: #fbcfe8; /* Soft pastel pink */
             bottom: 10%;
             right: 10%;
             animation-delay: -5s;
@@ -88,8 +88,9 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid var(--panel-border);
-            background: rgba(15, 23, 42, 0.3);
+            background: rgba(255, 255, 255, 0.4);
             backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             position: sticky;
             top: 0;
             z-index: 50;
@@ -103,17 +104,17 @@
 
         .logo-icon {
             font-size: 1.8rem;
-            background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+            background: linear-gradient(135deg, #4f46e5 0%, #a855f7 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 2px 8px rgba(129, 140, 248, 0.4));
+            filter: drop-shadow(0 2px 8px rgba(79, 70, 229, 0.25));
         }
 
         .logo-text {
             font-size: 1.25rem;
             font-weight: 700;
             letter-spacing: 0.5px;
-            background: linear-gradient(to right, #ffffff, #cbd5e1);
+            background: linear-gradient(to right, #0f172a, #334155);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -122,13 +123,13 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            background: rgba(30, 41, 59, 0.8);
+            background: rgba(255, 255, 255, 0.7);
             border: 1px solid var(--panel-border);
             padding: 0.5rem 1rem;
             border-radius: 9999px;
             font-size: 0.85rem;
             font-weight: 500;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 10px rgba(148, 163, 184, 0.08);
         }
 
         .status-indicator {
@@ -183,7 +184,7 @@
             padding: 1.75rem;
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 10px 30px -10px rgba(148, 163, 184, 0.25);
             display: flex;
             flex-direction: column;
             gap: 1.5rem;
@@ -191,8 +192,8 @@
         }
 
         .glass-panel:hover {
-            border-color: rgba(255, 255, 255, 0.12);
-            box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.4);
+            border-color: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 15px 35px -5px rgba(148, 163, 184, 0.35);
         }
 
         .panel-title {
@@ -202,22 +203,22 @@
             align-items: center;
             gap: 0.5rem;
             color: var(--text-primary);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
             padding-bottom: 0.75rem;
         }
 
         .panel-title i {
-            color: #818cf8;
+            color: #4f46e5;
         }
 
         /* Model selector toggle */
         .model-toggle-group {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            background: rgba(15, 23, 42, 0.5);
+            background: rgba(241, 245, 249, 0.85);
             border-radius: 0.75rem;
             padding: 0.25rem;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(148, 163, 184, 0.1);
         }
 
         .model-btn {
@@ -245,7 +246,7 @@
 
         .model-btn:not(.active):hover {
             color: var(--text-primary);
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(0, 0, 0, 0.03);
         }
 
         /* Model status details */
@@ -272,11 +273,11 @@
         }
 
         .info-value.badge {
-            background: rgba(99, 102, 241, 0.15);
-            color: #a5b4fc;
+            background: rgba(79, 70, 229, 0.08);
+            color: #4f46e5;
             padding: 0.25rem 0.6rem;
             border-radius: 6px;
-            border: 1px solid rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(79, 70, 229, 0.15);
             font-size: 0.8rem;
         }
 
@@ -284,7 +285,7 @@
         .tabs-header {
             display: flex;
             gap: 1rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
             padding-bottom: 0.5rem;
         }
 
@@ -314,7 +315,7 @@
             height: 2px;
             background: var(--primary);
             border-radius: 9999px;
-            box-shadow: 0 0 8px var(--primary);
+            box-shadow: 0 0 8px var(--primary-glow);
         }
 
         .tab-content {
@@ -336,8 +337,8 @@
         /* Inputs & Textareas */
         textarea {
             width: 100%;
-            background: rgba(15, 23, 42, 0.4);
-            border: 1px solid var(--panel-border);
+            background: rgba(255, 255, 255, 0.65);
+            border: 1px solid rgba(148, 163, 184, 0.25);
             border-radius: 0.75rem;
             color: var(--text-primary);
             font-family: var(--font-main);
@@ -352,7 +353,7 @@
         textarea:focus {
             border-color: var(--primary);
             box-shadow: 0 0 0 3px var(--primary-glow);
-            background: rgba(15, 23, 42, 0.6);
+            background: rgba(255, 255, 255, 0.95);
         }
 
         /* Action Buttons */
@@ -377,7 +378,7 @@
 
         .btn-action:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.35);
             background: linear-gradient(135deg, #818cf8 0%, #4f46e5 100%);
         }
 
@@ -396,8 +397,8 @@
         /* Output Result Card */
         .result-container {
             border-radius: 1rem;
-            background: rgba(15, 23, 42, 0.35);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.5);
             padding: 1.5rem;
             display: flex;
             flex-direction: column;
@@ -468,10 +469,10 @@
         .progress-bar-container {
             width: 100%;
             height: 12px;
-            background: rgba(15, 23, 42, 0.6);
+            background: rgba(241, 245, 249, 0.85);
             border-radius: 9999px;
             overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(148, 163, 184, 0.1);
         }
 
         .progress-bar-fill {
@@ -497,7 +498,7 @@
             gap: 1rem;
             font-size: 0.85rem;
             margin-top: 0.25rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
             padding-top: 0.75rem;
         }
 
@@ -527,18 +528,18 @@
         }
 
         .batch-results-list::-webkit-scrollbar-track {
-            background: rgba(0,0,0,0.1);
+            background: rgba(0,0,0,0.05);
             border-radius: 9999px;
         }
 
         .batch-results-list::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.15);
             border-radius: 9999px;
         }
 
         .batch-item {
-            background: rgba(15, 23, 42, 0.25);
-            border: 1px solid rgba(255, 255, 255, 0.03);
+            background: rgba(255, 255, 255, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.5);
             border-radius: 0.75rem;
             padding: 1rem;
             display: flex;
@@ -548,8 +549,8 @@
         }
 
         .batch-item:hover {
-            border-color: rgba(255,255,255,0.08);
-            background: rgba(15, 23, 42, 0.35);
+            border-color: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.5);
         }
 
         .batch-item-text {
@@ -572,15 +573,15 @@
         }
 
         .batch-mini-badge.pos {
-            background: rgba(16, 185, 129, 0.1);
+            background: rgba(16, 185, 129, 0.08);
             color: var(--positive);
-            border: 1px solid rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.15);
         }
 
         .batch-mini-badge.neg {
-            background: rgba(244, 63, 94, 0.1);
+            background: rgba(244, 63, 94, 0.08);
             color: var(--negative);
-            border: 1px solid rgba(244, 63, 94, 0.2);
+            border: 1px solid rgba(244, 63, 94, 0.15);
         }
 
         .batch-item-conf {
@@ -593,11 +594,12 @@
             position: fixed;
             bottom: 2rem;
             right: 2rem;
-            background: rgba(30, 41, 59, 0.9);
-            border: 1px solid var(--panel-border);
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.8);
             padding: 1rem 1.5rem;
             border-radius: 0.75rem;
             backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             z-index: 1000;
             display: flex;
             align-items: center;
@@ -605,7 +607,8 @@
             transform: translateY(100px);
             opacity: 0;
             transition: var(--transition);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 20px 25px -5px rgba(148, 163, 184, 0.25);
+            color: var(--text-primary);
         }
 
         .toast.show {
@@ -621,7 +624,7 @@
             padding: 2rem;
             color: var(--text-muted);
             font-size: 0.85rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.03);
+            border-top: 1px solid rgba(0, 0, 0, 0.03);
             margin-top: auto;
         }
 
