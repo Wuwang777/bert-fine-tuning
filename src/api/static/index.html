@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BERT 中文情感分析控制台</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #020617 100%);
+            --panel-bg: rgba(30, 41, 59, 0.45);
+            --panel-border: rgba(255, 255, 255, 0.08);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --primary-glow: rgba(99, 102, 241, 0.3);
+            
+            --positive: #10b981;
+            --positive-bg: rgba(16, 185, 129, 0.15);
+            --positive-glow: rgba(16, 185, 129, 0.4);
+            
+            --negative: #f43f5e;
+            --negative-bg: rgba(244, 63, 94, 0.15);
+            --negative-glow: rgba(244, 63, 94, 0.4);
+            
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --font-main: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background: var(--bg-gradient);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Background animated particles / blur blobs */
+        .blur-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            z-index: -1;
+            opacity: 0.4;
+            animation: float-blob 20s infinite alternate ease-in-out;
+        }
+
+        .blob-1 {
+            width: 400px;
+            height: 400px;
+            background: #4f46e5;
+            top: 10%;
+            left: 10%;
+        }
+
+        .blob-2 {
+            width: 500px;
+            height: 500px;
+            background: #db2777;
+            bottom: 10%;
+            right: 10%;
+            animation-delay: -5s;
+        }
+
+        @keyframes float-blob {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(50px, 30px) scale(1.1); }
+        }
+
+        header {
+            padding: 2rem 4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--panel-border);
+            background: rgba(15, 23, 42, 0.3);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 2px 8px rgba(129, 140, 248, 0.4));
+        }
+
+        .logo-text {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            background: linear-gradient(to right, #ffffff, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid var(--panel-border);
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--text-muted);
+        }
+
+        .status-indicator.online {
+            background-color: var(--positive);
+            box-shadow: 0 0 12px var(--positive);
+            animation: pulse-green 2s infinite;
+        }
+
+        .status-indicator.offline {
+            background-color: var(--negative);
+            box-shadow: 0 0 12px var(--negative);
+        }
+
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        main {
+            flex: 1;
+            padding: 3rem 4rem;
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 2.5rem;
+        }
+
+        @media (max-width: 1024px) {
+            main {
+                grid-template-columns: 1fr;
+                padding: 1.5rem;
+            }
+            header {
+                padding: 1rem 1.5rem;
+            }
+        }
+
+        .glass-panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 1.25rem;
+            padding: 1.75rem;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            transition: var(--transition);
+        }
+
+        .glass-panel:hover {
+            border-color: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.4);
+        }
+
+        .panel-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-primary);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 0.75rem;
+        }
+
+        .panel-title i {
+            color: #818cf8;
+        }
+
+        /* Model selector toggle */
+        .model-toggle-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 0.75rem;
+            padding: 0.25rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .model-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 0.65rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-family: var(--font-main);
+            font-weight: 500;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: var(--transition);
+        }
+
+        .model-btn.active {
+            background: var(--primary);
+            color: #ffffff;
+            box-shadow: 0 4px 12px var(--primary-glow);
+        }
+
+        .model-btn:not(.active):hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        /* Model status details */
+        .info-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+
+        .info-label {
+            color: var(--text-secondary);
+        }
+
+        .info-value {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .info-value.badge {
+            background: rgba(99, 102, 241, 0.15);
+            color: #a5b4fc;
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            font-size: 0.8rem;
+        }
+
+        /* Tab Layout */
+        .tabs-header {
+            display: flex;
+            gap: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 0.5rem;
+        }
+
+        .tab-link {
+            color: var(--text-secondary);
+            background: transparent;
+            border: none;
+            padding: 0.5rem 1rem 0.75rem 1rem;
+            font-family: var(--font-main);
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            position: relative;
+            transition: var(--transition);
+        }
+
+        .tab-link.active {
+            color: var(--text-primary);
+        }
+
+        .tab-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--primary);
+            border-radius: 9999px;
+            box-shadow: 0 0 8px var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+            flex-direction: column;
+            gap: 1.5rem;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .tab-content.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Inputs & Textareas */
+        textarea {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid var(--panel-border);
+            border-radius: 0.75rem;
+            color: var(--text-primary);
+            font-family: var(--font-main);
+            font-size: 1rem;
+            padding: 1rem;
+            resize: vertical;
+            min-height: 120px;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+            background: rgba(15, 23, 42, 0.6);
+        }
+
+        /* Action Buttons */
+        .btn-action {
+            width: 100%;
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            border: none;
+            color: #ffffff;
+            padding: 0.85rem 1.5rem;
+            border-radius: 0.75rem;
+            font-family: var(--font-main);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 14px var(--primary-glow);
+            transition: var(--transition);
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
+            background: linear-gradient(135deg, #818cf8 0%, #4f46e5 100%);
+        }
+
+        .btn-action:active {
+            transform: translateY(0);
+        }
+
+        .btn-action:disabled {
+            background: var(--text-muted);
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+            opacity: 0.5;
+        }
+
+        /* Output Result Card */
+        .result-container {
+            border-radius: 1rem;
+            background: rgba(15, 23, 42, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            opacity: 0;
+            transform: scale(0.98);
+            transition: var(--transition);
+            max-height: 0;
+            overflow: hidden;
+            padding-top: 0;
+            padding-bottom: 0;
+            border-width: 0;
+        }
+
+        .result-container.show {
+            opacity: 1;
+            transform: scale(1);
+            max-height: 1000px;
+            padding: 1.5rem;
+            border-width: 1px;
+            margin-top: 0.5rem;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .result-sentiment-badge {
+            padding: 0.5rem 1.25rem;
+            border-radius: 9999px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .sentiment-positive {
+            background: var(--positive-bg);
+            color: var(--positive);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.1);
+        }
+
+        .sentiment-negative {
+            background: var(--negative-bg);
+            color: var(--negative);
+            border: 1px solid rgba(244, 63, 94, 0.3);
+            box-shadow: 0 0 15px rgba(244, 63, 94, 0.1);
+        }
+
+        /* Confidence bar */
+        .progress-section {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 12px;
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 9999px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 9999px;
+            width: 0%;
+            transition: width 1s cubic-bezier(0.1, 0.8, 0.25, 1);
+        }
+
+        .bg-positive {
+            background: linear-gradient(90deg, #10b981, #34d399);
+            box-shadow: 0 0 10px var(--positive-glow);
+        }
+
+        .bg-negative {
+            background: linear-gradient(90deg, #f43f5e, #fb7185);
+            box-shadow: 0 0 10px var(--negative-glow);
+        }
+
+        .prob-distribution {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 0.75rem;
+        }
+
+        .prob-label {
+            display: flex;
+            justify-content: space-between;
+            color: var(--text-secondary);
+        }
+
+        .prob-val {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* Batch Results list */
+        .batch-results-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+
+        .batch-results-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .batch-results-list::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.1);
+            border-radius: 9999px;
+        }
+
+        .batch-results-list::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.1);
+            border-radius: 9999px;
+        }
+
+        .batch-item {
+            background: rgba(15, 23, 42, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            transition: var(--transition);
+        }
+
+        .batch-item:hover {
+            border-color: rgba(255,255,255,0.08);
+            background: rgba(15, 23, 42, 0.35);
+        }
+
+        .batch-item-text {
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            line-height: 1.4;
+        }
+
+        .batch-item-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .batch-mini-badge {
+            font-size: 0.75rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 9999px;
+            font-weight: 600;
+        }
+
+        .batch-mini-badge.pos {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--positive);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .batch-mini-badge.neg {
+            background: rgba(244, 63, 94, 0.1);
+            color: var(--negative);
+            border: 1px solid rgba(244, 63, 94, 0.2);
+        }
+
+        .batch-item-conf {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        /* Notifications & Error messages */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(30, 41, 59, 0.9);
+            border: 1px solid var(--panel-border);
+            padding: 1rem 1.5rem;
+            border-radius: 0.75rem;
+            backdrop-filter: blur(12px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: var(--transition);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success i { color: var(--positive); }
+        .toast.error i { color: var(--negative); }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.03);
+            margin-top: auto;
+        }
+
+        /* Loading spinner */
+        .spinner {
+            animation: rotate 2s linear infinite;
+            width: 20px;
+            height: 20px;
+        }
+
+        .spinner .path {
+            stroke: #ffffff;
+            stroke-linecap: round;
+            animation: dash 1.5s ease-in-out infinite;
+        }
+
+        @keyframes rotate {
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes dash {
+            0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; }
+            50% { stroke-dasharray: 90, 150; stroke-dashoffset: -35; }
+            100% { stroke-dasharray: 90, 150; stroke-dashoffset: -124; }
+        }
+    </style>
+</head>
+<body>
+    <div class="blur-blob blob-1"></div>
+    <div class="blur-blob blob-2"></div>
+
+    <header>
+        <div class="logo-area">
+            <i class="fa-solid fa-brain logo-icon"></i>
+            <span class="logo-text">BERT Sentiment Dashboard</span>
+        </div>
+        <div class="status-badge">
+            <div id="statusIndicator" class="status-indicator"></div>
+            <span id="statusText">正在检查连接...</span>
+        </div>
+    </header>
+
+    <main>
+        <!-- Sidebar - Model Controls -->
+        <section class="glass-panel">
+            <h2 class="panel-title">
+                <i class="fa-solid fa-sliders"></i>
+                模型配置与控制
+            </h2>
+            
+            <div class="info-list">
+                <div class="info-item">
+                    <span class="info-label">目标模型：</span>
+                    <span class="info-value badge">Chinese-RoBERTa-WWM-Ext</span>
+                </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">
+                <span class="info-label" style="font-size: 0.85rem; font-weight: 500;">微调模型热切换：</span>
+                <div class="model-toggle-group">
+                    <button id="modelFullBtn" class="model-btn active" onclick="switchModel('full')">
+                        <i class="fa-solid fa-cube"></i> 全量微调
+                    </button>
+                    <button id="modelLoraBtn" class="model-btn" onclick="switchModel('lora')">
+                        <i class="fa-solid fa-feather-pointed"></i> LoRA 微调
+                    </button>
+                </div>
+            </div>
+
+            <div class="info-list" style="border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 1rem;">
+                <div class="info-item">
+                    <span class="info-label">当前运行模型：</span>
+                    <span id="currentModelVal" class="info-value text-primary">—</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">计算设备：</span>
+                    <span id="currentDeviceVal" class="info-value text-primary">—</span>
+                </div>
+                <div class="info-item" style="flex-direction: column; align-items: flex-start; gap: 0.5rem; margin-top: 0.5rem;">
+                    <span class="info-label">磁盘可用模型：</span>
+                    <div style="display: flex; gap: 0.5rem; width: 100%;">
+                        <div id="diskFullBadge" class="batch-mini-badge neg" style="flex: 1; text-align: center; font-size: 0.75rem; padding: 0.4rem;">
+                            Full: 未检测到
+                        </div>
+                        <div id="diskLoraBadge" class="batch-mini-badge neg" style="flex: 1; text-align: center; font-size: 0.75rem; padding: 0.4rem;">
+                            LoRA: 未检测到
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Content Area - Tabs & Playground -->
+        <section class="glass-panel" style="gap: 1.75rem;">
+            <div class="tabs-header">
+                <button class="tab-link active" onclick="switchTab('single')">
+                    <i class="fa-solid fa-message-captions"></i> 单条情感分析
+                </button>
+                <button class="tab-link" onclick="switchTab('batch')">
+                    <i class="fa-solid fa-list-check"></i> 批量文本测试
+                </button>
+            </div>
+
+            <!-- Single Predict Tab -->
+            <div id="singleTab" class="tab-content active">
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <label for="singleInput" class="info-label" style="font-size: 0.9rem;">请输入中文文本：</label>
+                    <textarea id="singleInput" placeholder="请输入情感分析测试内容...（例如：这家店的菜色非常惊艳，服务人员也十分热情，用餐体验非常棒！）">这家店的菜品味道很棒，服务员态度也超级好，强烈推荐！</textarea>
+                </div>
+                
+                <button id="btnSinglePredict" class="btn-action" onclick="runSinglePredict()">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> <span>开始情感分析</span>
+                </button>
+
+                <!-- Single Prediction Result -->
+                <div id="singleResultCard" class="result-container">
+                    <div class="result-header">
+                        <span class="info-label" style="font-weight: 600;">预测结果</span>
+                        <div id="sentimentBadge" class="result-sentiment-badge">😊 正面</div>
+                    </div>
+
+                    <div class="progress-section">
+                        <div class="progress-info">
+                            <span>分析置信度</span>
+                            <span id="confidenceVal" style="font-weight: 700;">99.5%</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div id="confidenceBar" class="progress-bar-fill bg-positive" style="width: 0%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="prob-distribution">
+                        <div class="prob-label">
+                            <span>😞 负面概率</span>
+                            <span id="negProbVal" class="prob-val">0.5%</span>
+                        </div>
+                        <div class="prob-label">
+                            <span>😊 正面概率</span>
+                            <span id="posProbVal" class="prob-val">99.5%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Batch Predict Tab -->
+            <div id="batchTab" class="tab-content">
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <label for="batchInput" class="info-label" style="font-size: 0.9rem;">请输入多行文本（一行代表一条数据）：</label>
+                    <textarea id="batchInput" placeholder="输入第一行文本...&#10;输入第二行文本..." style="min-height: 160px; line-height: 1.6;">这家店的菜品味道很棒，服务员态度也超级好，强烈推荐！
+体验极差，菜品不新鲜，等了半个多小时都没上齐，以后再也不来了。
+这个产品用起来感觉一般般，没有想象中的那么好，但也能凑合用。
+今天阳光明媚，在公园散步感到特别放松和开心。</textarea>
+                </div>
+
+                <button id="btnBatchPredict" class="btn-action" onclick="runBatchPredict()">
+                    <i class="fa-solid fa-list-check"></i> <span>开始批量分析</span>
+                </button>
+
+                <!-- Batch Prediction Results -->
+                <div id="batchResultCard" class="result-container" style="display: flex; flex-direction: column; gap: 1rem;">
+                    <span class="info-label" style="font-weight: 600; margin-bottom: -0.25rem;">批量分析明细</span>
+                    <div id="batchListContainer" class="batch-results-list">
+                        <!-- Dynamic Item -->
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Notification Toast -->
+    <div id="notificationToast" class="toast">
+        <i id="toastIcon" class="fa-solid"></i>
+        <span id="toastMsg">通知内容</span>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 BERT Sentiment Analysis Dashboard &middot; Powering with FastAPI & PyTorch</p>
+    </footer>
+
+    <script>
+        const API_URL = ""; // 相对路径直接访问同源主机
+        let isOnline = false;
+
+        // Startup lifecycle
+        window.addEventListener('DOMContentLoaded', () => {
+            checkAPIStatus();
+            // 每隔5秒心跳检测一次
+            setInterval(checkAPIStatus, 5000);
+        });
+
+        // Tab switcher
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-link').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            const selectedBtn = Array.from(document.querySelectorAll('.tab-link')).find(btn => btn.getAttribute('onclick').includes(tabId));
+            selectedBtn.classList.add('active');
+            document.getElementById(`${tabId}Tab`).classList.add('active');
+        }
+
+        // Show Toast helper
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('notificationToast');
+            const icon = document.getElementById('toastIcon');
+            const msg = document.getElementById('toastMsg');
+
+            toast.className = `toast ${type} show`;
+            msg.textContent = message;
+
+            if (type === 'success') {
+                icon.className = 'fa-solid fa-circle-check';
+            } else {
+                icon.className = 'fa-solid fa-circle-exclamation';
+            }
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3500);
+        }
+
+        // Action loading state helper
+        function setLoading(btnId, isLoading, defaultText) {
+            const btn = document.getElementById(btnId);
+            if (isLoading) {
+                btn.disabled = true;
+                btn.innerHTML = `<svg class="spinner" viewBox="0 0 50 50"><circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle></svg> 正在处理...`;
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = defaultText;
+            }
+        }
+
+        // Check Backend API Connection & loaded info
+        async function checkAPIStatus() {
+            const indicator = document.getElementById('statusIndicator');
+            const statusText = document.getElementById('statusText');
+            
+            try {
+                const res = await fetch(`${API_URL}/health`);
+                if (!res.ok) throw new Error("HTTP-Error");
+                
+                const data = await res.json();
+                isOnline = true;
+                indicator.className = 'status-indicator online';
+                statusText.textContent = '服务已联机';
+                
+                // Update UI configurations
+                document.getElementById('currentModelVal').textContent = data.loaded_model ? data.loaded_model.toUpperCase() : '未加载';
+                document.getElementById('currentDeviceVal').textContent = data.device ? data.device : '无';
+                
+                // Set active model button highlight
+                const modelFullBtn = document.getElementById('modelFullBtn');
+                const modelLoraBtn = document.getElementById('modelLoraBtn');
+                
+                if (data.loaded_model === 'full') {
+                    modelFullBtn.classList.add('active');
+                    modelLoraBtn.classList.remove('active');
+                } else if (data.loaded_model === 'lora') {
+                    modelLoraBtn.classList.add('active');
+                    modelFullBtn.classList.remove('active');
+                } else {
+                    modelFullBtn.classList.remove('active');
+                    modelLoraBtn.classList.remove('active');
+                }
+
+                // Update disk availability badges
+                const diskFull = document.getElementById('diskFullBadge');
+                const diskLora = document.getElementById('diskLoraBadge');
+
+                if (data.available_models_on_disk.full) {
+                    diskFull.className = 'batch-mini-badge pos';
+                    diskFull.textContent = 'Full: 已就绪';
+                } else {
+                    diskFull.className = 'batch-mini-badge neg';
+                    diskFull.textContent = 'Full: 未检测到';
+                }
+
+                if (data.available_models_on_disk.lora) {
+                    diskLora.className = 'batch-mini-badge pos';
+                    diskLora.textContent = 'LoRA: 已就绪';
+                } else {
+                    diskLora.className = 'batch-mini-badge neg';
+                    diskLora.textContent = 'LoRA: 未检测到';
+                }
+
+            } catch (err) {
+                isOnline = false;
+                indicator.className = 'status-indicator offline';
+                statusText.textContent = '服务离线';
+                document.getElementById('currentModelVal').textContent = '—';
+                document.getElementById('currentDeviceVal').textContent = '—';
+                
+                document.getElementById('diskFullBadge').className = 'batch-mini-badge neg';
+                document.getElementById('diskFullBadge').textContent = 'Full: 未检测到';
+                document.getElementById('diskLoraBadge').className = 'batch-mini-badge neg';
+                document.getElementById('diskLoraBadge').textContent = 'LoRA: 未检测到';
+            }
+        }
+
+        // Switch Active model type via API
+        async function switchModel(method) {
+            if (!isOnline) {
+                showToast("服务当前处于离线状态，无法切换模型", "error");
+                return;
+            }
+
+            const activeBtn = method === 'full' ? document.getElementById('modelFullBtn') : document.getElementById('modelLoraBtn');
+            const originalHTML = activeBtn.innerHTML;
+            
+            // Set loading text in button
+            activeBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> 正在加载...`;
+            
+            try {
+                const res = await fetch(`${API_URL}/model/switch`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ method })
+                });
+
+                const data = await res.json();
+                if (!res.ok) {
+                    throw new Error(data.detail || "切换失败");
+                }
+
+                showToast(data.message, "success");
+                await checkAPIStatus(); // Refresh details immediately
+            } catch (err) {
+                showToast(err.message, "error");
+            } finally {
+                activeBtn.innerHTML = originalHTML;
+            }
+        }
+
+        // Single Sentiment Predict
+        async function runSinglePredict() {
+            if (!isOnline) {
+                showToast("服务器离线中，无法进行情感分析", "error");
+                return;
+            }
+
+            const inputVal = document.getElementById('singleInput').value.trim();
+            if (!inputVal) {
+                showToast("请输入需要分析的中文文本！", "error");
+                return;
+            }
+
+            setLoading('btnSinglePredict', true, `<i class="fa-solid fa-wand-magic-sparkles"></i> <span>开始情感分析</span>`);
+
+            try {
+                const res = await fetch(`${API_URL}/predict`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: inputVal })
+                });
+
+                const data = await res.json();
+                if (!res.ok) {
+                    throw new Error(data.detail || "推理失败");
+                }
+
+                // Show result card and bind values
+                const card = document.getElementById('singleResultCard');
+                card.classList.add('show');
+
+                const isPos = data.result.label.includes("正面");
+                const badge = document.getElementById('sentimentBadge');
+                badge.className = `result-sentiment-badge ${isPos ? 'sentiment-positive' : 'sentiment-negative'}`;
+                badge.innerHTML = isPos ? `<i class="fa-solid fa-face-smile"></i> ${data.result.label}` : `<i class="fa-solid fa-face-frown"></i> ${data.result.label}`;
+
+                const confPercent = (data.result.confidence * 100).toFixed(1) + '%';
+                document.getElementById('confidenceVal').textContent = confPercent;
+
+                const fillBar = document.getElementById('confidenceBar');
+                fillBar.className = `progress-bar-fill ${isPos ? 'bg-positive' : 'bg-negative'}`;
+                // Small delay to trigger width transition animation
+                setTimeout(() => fillBar.style.width = confPercent, 50);
+
+                document.getElementById('posProbVal').textContent = (data.result.probs[1] * 100).toFixed(2) + '%';
+                document.getElementById('negProbVal').textContent = (data.result.probs[0] * 100).toFixed(2) + '%';
+
+                showToast("分析完成！");
+            } catch (err) {
+                showToast(err.message, "error");
+            } finally {
+                setLoading('btnSinglePredict', false, `<i class="fa-solid fa-wand-magic-sparkles"></i> <span>开始情感分析</span>`);
+            }
+        }
+
+        // Batch Sentiment Predict
+        async function runBatchPredict() {
+            if (!isOnline) {
+                showToast("服务器离线中，无法进行情感分析", "error");
+                return;
+            }
+
+            const inputVal = document.getElementById('batchInput').value.trim();
+            if (!inputVal) {
+                showToast("请输入需要批量分析的文本！", "error");
+                return;
+            }
+
+            // Split lines to list
+            const texts = inputVal.split('\n').map(t => t.trim()).filter(t => t.length > 0);
+            if (texts.length === 0) {
+                showToast("未检测到有效的文本行！", "error");
+                return;
+            }
+
+            setLoading('btnBatchPredict', true, `<i class="fa-solid fa-list-check"></i> <span>开始批量分析</span>`);
+
+            try {
+                const res = await fetch(`${API_URL}/predict/batch`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ texts })
+                });
+
+                const data = await res.json();
+                if (!res.ok) {
+                    throw new Error(data.detail || "批量推理失败");
+                }
+
+                // Show batch card and clear items
+                const card = document.getElementById('batchResultCard');
+                card.classList.add('show');
+
+                const container = document.getElementById('batchListContainer');
+                container.innerHTML = '';
+
+                // Dynamically build and add result nodes
+                data.results.forEach((item, index) => {
+                    const isPos = item.label.includes("正面");
+                    const itemNode = document.createElement('div');
+                    itemNode.className = 'batch-item';
+
+                    itemNode.innerHTML = `
+                        <div class="batch-item-text">${item.text}</div>
+                        <div class="batch-item-meta">
+                            <span class="batch-mini-badge ${isPos ? 'pos' : 'neg'}">
+                                ${isPos ? '<i class="fa-solid fa-face-smile"></i>' : '<i class="fa-solid fa-face-frown"></i>'} ${item.label}
+                            </span>
+                            <span class="batch-item-conf">置信度: ${(item.confidence * 100).toFixed(1)}%</span>
+                        </div>
+                    `;
+                    container.appendChild(itemNode);
+                });
+
+                showToast(`批量分析完成！共处理 ${data.results.length} 条数据`);
+            } catch (err) {
+                showToast(err.message, "error");
+            } finally {
+                setLoading('btnBatchPredict', false, `<i class="fa-solid fa-list-check"></i> <span>开始批量分析</span>`);
+            }
+        }
+    </script>
+</body>
+</html>

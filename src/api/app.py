@@ -21,6 +21,8 @@ os.environ["TRANSFORMERS_OFFLINE"] = "1"
 
 from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 # 确保项目根目录在 sys.path 中以加载 gui.predictor 和 src 模块
@@ -62,6 +64,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ─── 静态文件服务与前端页面 ───
+STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
+if os.path.exists(STATIC_DIR):
+    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
 # ─── Pydantic 数据验证模型 ───
@@ -172,6 +179,14 @@ def startup_event():
 # ─── 路由定义 ───
 
 @app.get("/", tags=["系统"])
+def read_root():
+    """返回内置的测试前端网页"""
+    index_file = os.path.join(STATIC_DIR, "index.html")
+    if os.path.exists(index_file):
+        return FileResponse(index_file)
+    return {"message": "BERT Sentiment API is running. Please check /docs for OpenAPI definitions."}
+
+
 @app.get("/health", tags=["系统"])
 def health_check():
     """查看服务健康状态及可用模型"""
